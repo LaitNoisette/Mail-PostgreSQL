@@ -44,7 +44,64 @@ CREATE TABLE m_supprimes(
     date_envoie timestamp DEFAULT current_timestamp
 );
 
+CREATE VIEW mes_messages AS
+SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess
+	FROM m_recus
+		WHERE destinataire= /*utilisateur courant */
+			ORDER BY numero DESC;
+
 INSERT INTO membres(utilisateur,mdp,mail,nom,prenom) VALUES ('johny','mdpsecret','testdu38@yu.fr','Hug','John');
+
+/*Fonction permettant de poster un message d'un destinataire vers un expediteur*/
+create or replace function  post(expediteur varchar,destinataire varchar, message text)
+RETURNS boolean AS
+$$
+DECLARE 
+u varchar;
+BEGIN
+
+select usename into u from pg_user where usename=destinataire;
+
+IF NOT FOUND THEN
+	RETURN false;
+END IF;
+
+INSERT INTO m_envoyes(message, expediteur, destinataire) VALUES (message,expediteur,u);
+INSERT INTO m_recus(message, expediteur, destinataire) VALUES(message,expediteur,u);
+
+RETURN true;
+END;
+$$
+language plpgsql SECURITY DEFINER;
+
+/*Fonction permettant de recupérer les messages d'un utilisateur*/
+CREATE OR REPLACE function get(
+    in dest citext,
+	out num int,
+	out expe name,
+	out quand timestamp,
+	out mess text
+)
+RETURNS SETOF RECORD AS
+$$
+DECLARE 
+c cursor FOR SELECT numero, expediteur, date_envoie, message 
+	 FROM m_recus WHERE destinataire=dest ORDER BY date_envoie DESC;
+
+BEGIN
+	OPEN c;
+	LOOP
+		FETCH c INTO num, expe, quand, mess;
+			EXIT WHEN NOT FOUND;
+		RETURN NEXT;
+	END LOOP;
+
+	CLOSE c;
+RETURN;
+END;
+$$
+language plpgsql SECURITY DEFINER;
+
 
 
 
