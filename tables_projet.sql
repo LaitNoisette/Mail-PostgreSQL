@@ -23,7 +23,8 @@ CREATE TABLE  m_envoyes(
     message varchar,
     expediteur citext,
     destinataire citext,
-    date_envoie timestamp DEFAULT current_timestamp
+    date_envoie timestamp DEFAULT current_timestamp,
+    del_m int DEFAULT 0
 );
 
 CREATE TABLE m_recus(
@@ -32,25 +33,68 @@ CREATE TABLE m_recus(
     message varchar,
     expediteur citext,
     destinataire citext,
-    date_envoie timestamp DEFAULT current_timestamp
+    date_envoie timestamp DEFAULT current_timestamp,
+    del_m int DEFAULT 0
 );
 
-CREATE TABLE m_supprimes(
-    numero serial primary key,
-    objet varchar,
-    message varchar,
-    expediteur citext,
-    destinataire citext,
-    date_envoie timestamp DEFAULT current_timestamp
-);
-
-CREATE VIEW mes_messages AS
+CREATE VIEW mes_messages_recu AS
 SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess
 	FROM m_recus
 		WHERE destinataire= /*utilisateur courant */
 			ORDER BY numero DESC;
 
+CREATE VIEW mes_messages_env AS
+SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess
+	FROM m_envoyes
+		WHERE expediteur= /*utilisateur courant */
+			ORDER BY numero DESC;
+
+CREATE VIEW mes_messages_sup AS 
+SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess
+	FROM m_envoyes
+		WHERE expediteur= /*utilisateur courant */ AND del_m=1
+UNION
+SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess
+	FROM m_recus
+		WHERE destinataire= /*utilisateur courant */ AND del_m=1
+ORDER BY numero DESC;
+
 INSERT INTO membres(utilisateur,mdp,mail,nom,prenom) VALUES ('johny','mdpsecret','testdu38@yu.fr','Hug','John');
+
+/* Regles concernant lenvoi a un utilisateur existant*/
+CREATE OR REPLACE RULE post_m_recus
+AS ON INSERT to mes_messages WHERE new.expe IN (SELECT mail FROM membres WHERE mail=new.expe) 
+DO INSTEAD
+INSERT INTO m_recus(message,destinataire,expediteur) VALUES(new.mess,new.expe,/* expediteur*/);
+
+/* Regles concernant lenvoi a un utilisateur inexistant*/
+CREATE OR REPLACE RULE post_m_recus
+AS ON INSERT to mes_messages 
+DO INSTEAD
+NOTHING;
+
+/* Regles concernant lenvoi a un utilisateur existant*/
+CREATE OR REPLACE RULE post_m_envoyes
+AS ON INSERT to mes_messages WHERE new.expe IN (SELECT mail FROM membres WHERE mail=new.expe)
+DO INSTEAD
+INSERT INTO m_envoyes(message,destinataire,expediteur) VALUES(new.mess,new.expe,/*expediteur*/);
+
+/* Regles concernant lenvoi a un utilisateur inexistant*/
+CREATE OR REPLACE RULE post_m_envoyes
+AS ON INSERT to mes_messages 
+DO INSTEAD
+NOTHING;
+
+CREATE OR REPLACE RULE del_m_envoyes
+AS ON DELETE to mes_messages_env
+DO INSTEAD
+UPDATE m_envoyes SET del_m=1 WHERE numero=old.num;
+
+CREATE OR REPLACE RULE del_m_recus
+AS ON DELETE to mes_messages_recu
+DO INSTEAD
+UPDATE m_recus SET del_m=1 WHERE numero=old.num;
+
 
 /*Fonction permettant de poster un message d'un destinataire vers un expediteur*/
 create or replace function  post(expediteur varchar,destinataire varchar, message text)
@@ -101,8 +145,6 @@ RETURN;
 END;
 $$
 language plpgsql SECURITY DEFINER;
-
-
 
 
 
