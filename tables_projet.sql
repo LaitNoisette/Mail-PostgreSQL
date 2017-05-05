@@ -59,6 +59,23 @@ SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess
 		WHERE destinataire= /*utilisateur courant */ AND del_m=1
 ORDER BY numero DESC;
 
+/*Fonction boolean permettant de verifier si un utilisateur existe */
+CREATE OR REPLACE FUNCTION connexion_mail_bool(m citext,mdp varchar)
+AS RETURNS boolean
+$$
+BEGIN
+SELECT utilisateur FROM membres WHERE mail=m AND mdp=mdp;
+IF NOT FOUND THEN
+	RETURN false;
+END IF;
+
+RETURN true;
+END;
+$$
+language plpgsql;
+
+CREATE OR REPLACE 
+
 INSERT INTO membres(utilisateur,mdp,mail,nom,prenom) VALUES ('johny','mdpsecret','testdu38@yu.fr','Hug','John');
 
 /* Regles concernant lenvoi a un utilisateur existant*/
