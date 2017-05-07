@@ -36,14 +36,14 @@ function envoyer_message($expe, $dest, $mess, $objet)
 function lire_message($moi)
 {
     $pdo = SPDO::getBD();
-    $req = "SELECT * FROM mes_messages WHERE nom=:moi order by date";
+    $req = "SELECT expe, quand, mess FROM mes_messages order by quand";
     $stmt = $pdo->prepare($req);
-    $stmt->bindValue(':moi', $moi);
     if ($stmt->execute()) {
         return $stmt->fetchall(PDO::FETCH_ASSOC);
     } else {
         throw new Exception(__FUNCTION__ . ' Erreur SQL : ' . $req);
     }
 }
+
 
 ?>
