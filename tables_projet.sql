@@ -12,7 +12,7 @@ DROP TABLE m_supprimes;
 CREATE TABLE membres(
     utilisateur name,
     mdp varchar,
-    mail citext primary key,
+    mail email primary key,
     nom name,
     prenom name  
 );
@@ -21,8 +21,8 @@ CREATE TABLE  m_envoyes(
     numero serial primary key,
     objet varchar,
     message varchar,
-    expediteur citext,
-    destinataire citext,
+    expediteur email,
+    destinataire email,
     date_envoie timestamp DEFAULT current_timestamp,
     del_m int DEFAULT 0
 );
@@ -31,36 +31,84 @@ CREATE TABLE m_recus(
     numero serial primary key,
     objet varchar,
     message varchar,
-    expediteur citext,
-    destinataire citext,
+    expediteur email,
+    destinataire email,
     date_envoie timestamp DEFAULT current_timestamp,
     del_m int DEFAULT 0
 );
+/*Jeu de Test*/
+INSERT INTO membres(utilisateur,mdp,mail,nom,prenom) VALUES ('johny','mdpsecret','testdu38@yu.fr','Hug','John');
+INSERT INTO membres(utilisateur,mdp,mail,nom,prenom) VALUES ('franky','franckmdp','franck@iut.fr','MEYER','Franck');
+INSERT INTO membres(utilisateur,mdp,mail,nom,prenom) VALUES ('pissaraw','henrimdp','henri@iut.fr','PISSA','Henri');
+INSERT INTO m_envoyes(objet,message,expediteur,destinataire)VALUES ('Salut Henri','Comment ça va ?','franck@iut.fr','henri@iut.fr');
+INSERT INTO m_recus(objet,message,expediteur,destinataire)VALUES ('Salut Henri','Comment ça va ?','franck@iut.fr','henri@iut.fr');
+INSERT INTO m_envoyes(objet,message,expediteur,destinataire)VALUES ('COUCOU','NINJA','testdu38@yu.fr','henri@iut.fr');
+INSERT INTO m_recus(objet,message,expediteur,destinataire)VALUES ('COUCOU','NINJA','testdu38@yu.fr','henri@iut.fr');
+INSERT INTO m_envoyes(objet,message,expediteur,destinataire)VALUES ('JE SAIS','ahha','testdu38@yu.fr','franck@iut.fr');
+INSERT INTO m_recus(objet,message,expediteur,destinataire)VALUES ('JE SAIS','ahha','testdu38@yu.fr','franck@iut.fr');
 
+/*Toutes les views*/
+DROP VIEW mes_messages_recu;
 CREATE VIEW mes_messages_recu AS
-SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess
+SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess,destinataire AS dest,m_recus.objet AS obj
 	FROM m_recus
-		WHERE destinataire= /*utilisateur courant */
+		WHERE del_m=0
 			ORDER BY numero DESC;
 
 CREATE VIEW mes_messages_env AS
-SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess
+SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,m_envoyes.objet AS obj
 	FROM m_envoyes
-		WHERE expediteur= /*utilisateur courant */
+		WHERE del_m=0
 			ORDER BY numero DESC;
 
 CREATE VIEW mes_messages_sup AS 
-SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess
+SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,m_envoyes.objet AS obj
 	FROM m_envoyes
-		WHERE expediteur= /*utilisateur courant */ AND del_m=1
+		WHERE del_m=1
 UNION
-SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess
+SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,m_recus.objet AS obj
 	FROM m_recus
-		WHERE destinataire= /*utilisateur courant */ AND del_m=1
-ORDER BY numero DESC;
+		WHERE del_m=1
+ORDER BY num DESC;
+
+/* Regles concernant lenvoi a un utilisateur existant*/
+CREATE OR REPLACE RULE post_m_recus
+AS ON INSERT to mes_messages_recu WHERE new.expe IN (SELECT mail FROM membres WHERE mail=new.expe)
+DO INSTEAD
+INSERT INTO m_recus(objet,message,destinataire,expediteur) VALUES(new.obj,new.mess,new.dest,new.expe);
+
+/* Regles concernant lenvoi a un utilisateur inexistant*/
+CREATE OR REPLACE RULE post_m_recus
+AS ON INSERT to mes_messages_recu
+DO INSTEAD
+NOTHING;
+
+/* Regles concernant lenvoi a un utilisateur existant*/
+CREATE OR REPLACE RULE post_m_envoyes
+AS ON INSERT to mes_messages_env WHERE new.expe IN (SELECT mail FROM membres WHERE mail=new.expe)
+DO INSTEAD
+INSERT INTO m_envoyes(objet,message,destinataire,expediteur) VALUES(new.obj,new.mess,new.dest,new.expe);
+
+/* Regles concernant lenvoi a un utilisateur inexistant*/
+CREATE OR REPLACE RULE post_m_envoyes
+AS ON INSERT to mes_messages_env 
+DO INSTEAD
+NOTHING;
+
+/*
+CREATE OR REPLACE RULE del_m_envoyes
+AS ON DELETE to mes_messages_env
+DO INSTEAD
+UPDATE m_envoyes SET del_m=1 WHERE numero=old.num;
+
+CREATE OR REPLACE RULE del_m_recus
+AS ON DELETE to mes_messages_recu
+DO INSTEAD
+UPDATE m_recus SET del_m=1 WHERE numero=old.num;
+*/
 
 /*Fonction boolean permettant de verifier si un utilisateur existe */
-CREATE OR REPLACE FUNCTION connexion_mail_bool(m citext,mdp varchar)
+CREATE OR REPLACE FUNCTION connexion_mail_bool(m email,mdp varchar)
 AS RETURNS boolean
 $$
 BEGIN
@@ -74,51 +122,14 @@ END;
 $$
 language plpgsql;
 
-CREATE OR REPLACE 
-
-INSERT INTO membres(utilisateur,mdp,mail,nom,prenom) VALUES ('johny','mdpsecret','testdu38@yu.fr','Hug','John');
-
-/* Regles concernant lenvoi a un utilisateur existant*/
-CREATE OR REPLACE RULE post_m_recus
-AS ON INSERT to mes_messages WHERE new.expe IN (SELECT mail FROM membres WHERE mail=new.expe) 
-DO INSTEAD
-INSERT INTO m_recus(message,destinataire,expediteur) VALUES(new.mess,new.expe,/* expediteur*/);
-
-/* Regles concernant lenvoi a un utilisateur inexistant*/
-CREATE OR REPLACE RULE post_m_recus
-AS ON INSERT to mes_messages 
-DO INSTEAD
-NOTHING;
-
-/* Regles concernant lenvoi a un utilisateur existant*/
-CREATE OR REPLACE RULE post_m_envoyes
-AS ON INSERT to mes_messages WHERE new.expe IN (SELECT mail FROM membres WHERE mail=new.expe)
-DO INSTEAD
-INSERT INTO m_envoyes(message,destinataire,expediteur) VALUES(new.mess,new.expe,/*expediteur*/);
-
-/* Regles concernant lenvoi a un utilisateur inexistant*/
-CREATE OR REPLACE RULE post_m_envoyes
-AS ON INSERT to mes_messages 
-DO INSTEAD
-NOTHING;
-
-CREATE OR REPLACE RULE del_m_envoyes
-AS ON DELETE to mes_messages_env
-DO INSTEAD
-UPDATE m_envoyes SET del_m=1 WHERE numero=old.num;
-
-CREATE OR REPLACE RULE del_m_recus
-AS ON DELETE to mes_messages_recu
-DO INSTEAD
-UPDATE m_recus SET del_m=1 WHERE numero=old.num;
-
-
 /*Fonction permettant de poster un message d'un destinataire vers un expediteur*/
 create or replace function  post(expediteur varchar,destinataire varchar, message text)
 RETURNS boolean AS
 $$
+
 DECLARE 
 u varchar;
+
 BEGIN
 
 select usename into u from pg_user where usename=destinataire;
