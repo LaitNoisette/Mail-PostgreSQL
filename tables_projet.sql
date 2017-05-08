@@ -95,7 +95,7 @@ AS ON INSERT to mes_messages_env
 DO INSTEAD
 NOTHING;
 
-/*
+
 CREATE OR REPLACE RULE del_m_envoyes
 AS ON DELETE to mes_messages_env
 DO INSTEAD
@@ -105,7 +105,6 @@ CREATE OR REPLACE RULE del_m_recus
 AS ON DELETE to mes_messages_recu
 DO INSTEAD
 UPDATE m_recus SET del_m=1 WHERE numero=old.num;
-*/
 
 /*Fonction boolean permettant de verifier si un utilisateur existe */
 CREATE OR REPLACE FUNCTION connexion_mail_bool(m email,mdp varchar)
