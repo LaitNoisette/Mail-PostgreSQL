@@ -8,7 +8,7 @@
 
 
 //Connexion à la base de donnée pgsql appelé postgres, avec l'utuilisateur julien et mot de passe Morasin
-$dsn = "pgsql:host=localhost;port=5432;dbname=meyer;user=postgres;password=gotcha";
+$dsn = "pgsql:host=localhost;port=5432;dbname=meyer;user=postgres;password=";
 try{
 	// create a PostgreSQL database connection
 	$conn = new PDO($dsn);
