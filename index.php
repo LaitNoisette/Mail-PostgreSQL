@@ -8,7 +8,7 @@
 
 
 //Connexion à la base de donnée pgsql appelé postgres, avec l'utuilisateur julien et mot de passe Morasin
-$dsn = "pgsql:host=localhost;port=5432;dbname=meyer;user=postgres;password=";
+$dsn = "pgsql:host=localhost;port=5432;dbname=meyer;user=postgres;password=gotcha";
 try{
 	// create a PostgreSQL database connection
 	$conn = new PDO($dsn);
@@ -36,7 +36,7 @@ while ($donnees = $r->fetch())
 
 
 /*Exemple vue + where */
-$r=$conn->query('SELECT * from mes_messages_recu WHERE mes_messages_recu.destinataire=\'franck@iut.fr\'');
+$r=$conn->query('SELECT * from mes_messages_recu WHERE mes_messages_recu.dest=\'franck@iut.fr\'');
  
 while ($donnees = $r->fetch())
 

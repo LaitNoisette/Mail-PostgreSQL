@@ -47,6 +47,8 @@ INSERT INTO m_recus(objet,message,expediteur,destinataire)VALUES ('COUCOU','NINJ
 INSERT INTO m_envoyes(objet,message,expediteur,destinataire)VALUES ('JE SAIS','ahha','testdu38@yu.fr','franck@iut.fr');
 INSERT INTO m_recus(objet,message,expediteur,destinataire)VALUES ('JE SAIS','ahha','testdu38@yu.fr','franck@iut.fr');
 
+INSERT INTO mes_messages_recu(expe,mess,dest,obj)VALUES('franck@iut.fr','OVNI','henri@iut.fr','COUCOU HENRI PHP');
+
 /*Toutes les views*/
 DROP VIEW mes_messages_recu;
 CREATE VIEW mes_messages_recu AS
@@ -73,10 +75,9 @@ ORDER BY num DESC;
 
 /* Regles concernant lenvoi a un utilisateur existant*/
 CREATE OR REPLACE RULE post_m_recus
-AS ON INSERT to mes_messages_recu WHERE new.expe IN (SELECT mail FROM membres WHERE mail=new.expe)
+AS ON INSERT to mes_messages_recu 
 DO INSTEAD
 INSERT INTO m_recus(objet,message,destinataire,expediteur) VALUES(new.obj,new.mess,new.dest,new.expe);
-
 /* Regles concernant lenvoi a un utilisateur inexistant*/
 CREATE OR REPLACE RULE post_m_recus
 AS ON INSERT to mes_messages_recu
@@ -85,7 +86,7 @@ NOTHING;
 
 /* Regles concernant lenvoi a un utilisateur existant*/
 CREATE OR REPLACE RULE post_m_envoyes
-AS ON INSERT to mes_messages_env WHERE new.expe IN (SELECT mail FROM membres WHERE mail=new.expe)
+AS ON INSERT to mes_messages_env 
 DO INSTEAD
 INSERT INTO m_envoyes(objet,message,destinataire,expediteur) VALUES(new.obj,new.mess,new.dest,new.expe);
 

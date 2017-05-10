@@ -1,4 +1,27 @@
 <?
+define('BDD_HOST', 'localhost'); 
+define('BDD_LOGIN', 'postgres');       
+define('BDD_MDP', 'gotcha');             
+define('BDD_DATABASE', 'meyer');    
+define('BDD_DRIVER', 'postgres');
+
+function getBD(){
+    try {
+        $pdo = new PDO(BDD_DRIVER.':dbname='.BDD_DATABASE.';host='.BDD_HOST, BDD_LOGIN, BDD_MDP);
+        $pdo->query('SET NAMES utf8');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    }
+    catch (PDOException $e){
+        die('<p>La connexion a échouée. Erreur['.$e->getCode().'] : '.$e->getMessage().'</p>');
+    }
+    return $pdo;
+}
+
+function mess_recu($dest){
+    $pdo=getBD();
+    $req=''
+
+}
 function listedesmembres()
 {
     $pdo = SPDO::getBD(); //connexion base de donnée

@@ -157,19 +157,37 @@
                     </ul>
                 </div>
                 <?php
+                require_once centre.php;
+                /*$dsn = "pgsql:host=localhost;port=5432;dbname=meyer;user=postgres;password=gotcha";
+                try{
+                    // create a PostgreSQL database connection
+                    $conn = new PDO($dsn);
+
+                    // display a message if connected to the PostgreSQL successfully
+                    if($conn){
+                        echo "Connected to the <strong>$dsn</strong> database successfully! <br />";
+                    }
+                }catch (PDOException $e){
+                    // report error message
+                    echo $e->getMessage();
+                }*/
+                $pdo=getBD();
                 $moi='henri';
-                $reponse = $pdo->query('SELECT * FROM m_recus');
+                $addr='franck@iut.fr';
+                $reponse = $conn->query("SELECT * from mes_messages_recu WHERE mes_messages_recu.dest='".$addr.  "'; ");
+                print_r($reponse);
                 echo'<table class="table table-inbox table-hover><tbody>';
 
                 while ($donnees = $reponse->fetch())
                 {
+                    print_r($donnees);
                     echo '<tr class="unread>'
                                 .'<td class="inbox-small-cells">'
                                     .'<input type="checkbox" class="mail-checkbox">'
                                 .'</td>'.
                                 '<td class="inbox-small-cells">'.'</td>'.
-                                '<td class="view-message  dont-show>'.$donnees['objet'].'</td>'.
-                                '<td class="view-message ">'.$donnees['message'].'</td>'.
+                                '<td class="view-message  dont-show>'.$donnees['obj'].'</td>'.
+                                '<td class="view-message ">'.$donnees['mess'].'</td>'.
                                 '<td class="view-message  inbox-small-cells">'.'<i class="fa fa-paperclip">'.'</i>'.'</td>'.
                                 '<td class="view-message  text-right">'.$donnees['quand'].'</td>'
                         .'</tr>'."\n";
