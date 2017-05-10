@@ -52,23 +52,23 @@ INSERT INTO mes_messages_recu(expe,mess,dest,obj)VALUES('franck@iut.fr','OVNI','
 /*Toutes les views*/
 DROP VIEW mes_messages_recu;
 CREATE VIEW mes_messages_recu AS
-SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess,destinataire AS dest,m_recus.objet AS obj
+SELECT numero AS num, expediteur AS expe,date_envoie AS quand,message AS mess,destinataire AS dest,objet AS obj
 	FROM m_recus
 		WHERE del_m=0
 			ORDER BY numero DESC;
 
 CREATE VIEW mes_messages_env AS
-SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,m_envoyes.objet AS obj
+SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,objet AS obj
 	FROM m_envoyes
 		WHERE del_m=0
 			ORDER BY numero DESC;
 
 CREATE VIEW mes_messages_sup AS 
-SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,m_envoyes.objet AS obj
+SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,objet AS obj
 	FROM m_envoyes
 		WHERE del_m=1
 UNION
-SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,m_recus.objet AS obj
+SELECT numero AS num, destinataire AS dest,date_envoie AS quand,message AS mess, expediteur AS expe,objet AS obj
 	FROM m_recus
 		WHERE del_m=1
 ORDER BY num DESC;

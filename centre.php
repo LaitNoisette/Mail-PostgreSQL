@@ -1,9 +1,10 @@
 <?
+
 define('BDD_HOST', 'localhost'); 
 define('BDD_LOGIN', 'postgres');       
-define('BDD_MDP', 'gotcha');             
+define('BDD_MDP', '');             
 define('BDD_DATABASE', 'meyer');    
-define('BDD_DRIVER', 'postgres');
+define('BDD_DRIVER', 'pgsql');
 
 function getBD(){
     try {
@@ -14,14 +15,34 @@ function getBD(){
     catch (PDOException $e){
         die('<p>La connexion a échouée. Erreur['.$e->getCode().'] : '.$e->getMessage().'</p>');
     }
+    echo 'connect reussi';
     return $pdo;
 }
-
+/*
+function ins_mess_recu($dest){
+    $pdo = getBD();
+    $req = 'INSERT INTO sejour(type, date_debut, date_fin) VALUES (:type, :date_debut, :date_fin)';
+    $stmt = $pdo->prepare($req);
+    $stmt->bindValue(':type', $type);
+    $stmt->bindValue(':date_debut', $date_debut);
+    $stmt->bindValue(':date_fin', $date_fin);
+    if($stmt->execute())
+        return $pdo->lastInsertId();
+    else
+        throw new exception(__FUNCTION__.' Erreur SQL : '.$req);
+}
+*/
 function mess_recu($dest){
     $pdo=getBD();
-    $req=''
-
+    $req='SELECT * from mes_messages_recu WHERE mes_messages_recu.dest=:dest';
+    $stmt=$pdo->prepare($req);
+    $stmt->bindValue(':dest',$dest);
+     if($stmt->execute()){
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }else
+        throw new exception(__FUNCTION__.' Erreur SQL : '.$req);
 }
+/*
 function listedesmembres()
 {
     $pdo = SPDO::getBD(); //connexion base de donnée
@@ -63,5 +84,5 @@ function lire_message($moi)
     } else {
         throw new Exception(__FUNCTION__ . ' Erreur SQL : ' . $req);
     }
-}
+}*/
 ?>

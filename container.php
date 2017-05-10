@@ -157,8 +157,8 @@
                     </ul>
                 </div>
                 <?php
-                require_once centre.php;
-                /*$dsn = "pgsql:host=localhost;port=5432;dbname=meyer;user=postgres;password=gotcha";
+                //require_once 'centre.php';
+                $dsn = "pgsql:host=localhost;port=5432;dbname=meyer;user=postgres;password=";
                 try{
                     // create a PostgreSQL database connection
                     $conn = new PDO($dsn);
@@ -170,17 +170,19 @@
                 }catch (PDOException $e){
                     // report error message
                     echo $e->getMessage();
-                }*/
-                $pdo=getBD();
+                }
+                //$pdo=getBD();
                 $moi='henri';
                 $addr='franck@iut.fr';
                 $reponse = $conn->query("SELECT * from mes_messages_recu WHERE mes_messages_recu.dest='".$addr.  "'; ");
-                print_r($reponse);
+                //$reponse=mess_recu($addr);
+               // print_r($reponse);
                 echo'<table class="table table-inbox table-hover><tbody>';
 
                 while ($donnees = $reponse->fetch())
                 {
-                    print_r($donnees);
+                    //phpinfo();
+                    //print_r($donnees);
                     echo '<tr class="unread>'
                                 .'<td class="inbox-small-cells">'
                                     .'<input type="checkbox" class="mail-checkbox">'
@@ -194,6 +196,20 @@
                 }
 
                 echo'</tbody></table>';
+               
+                $expe=$addr;
+                $mess='ca marche ?';
+                $dest='henri@iut.fr';
+                $obj='Dernier Test';
+
+                $req = $conn->prepare('INSERT INTO mes_messages_recu(expe,mess,dest,obj)VALUES(:expe,:mess,:dest,:obj)');
+
+                $req->execute(array(
+                    'expe' => $expe,
+                    'mess' => $mess,
+                     'dest' => $dest,
+                     'obj' => $obj
+                    ));
                 ?>
 
             </div>
