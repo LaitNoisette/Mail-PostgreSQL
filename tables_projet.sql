@@ -174,5 +174,49 @@ END;
 $$
 language plpgsql SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION mailcheck_env()
+	RETURNS TRIGGER AS
+$$
+	DECLARE
+		m mail;
+	BEGIN
+	SELECT mail INTO m FROM membres WHERE mail=new.dest;
+
+	IF NOT (FOUND) THEN
+		RETURN NULL;
+	END IF;
+
+	RETURN NEW;
+	END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER mailcheck_env
+	BEFORE INSERT ON mes_messages_env
+	FOR EACH statement
+	EXECUTE PROCEDURE mailcheck_env();
+
+CREATE OR REPLACE FUNCTION mailcheck_recu()
+	RETURNS TRIGGER AS
+$$
+	DECLARE
+		m mail;
+	BEGIN
+	SELECT mail INTO m FROM membres WHERE mail=new.dest;
+	 
+	IF NOT (FOUND) THEN
+		RETURN NULL;
+	END IF;
+
+	RETURN NEW;
+	END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER mailcheck_recu
+	BEFORE INSERT ON mes_messages_recu
+	FOR EACH statement
+	EXECUTE PROCEDURE mailcheck_recu();
+
 
 
